@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to FortunaForge</title>
+</head>
+
+
+<!-- Welcome Page Structure -->
+<body>
+    <div class="container">
+        <h1>Welcome to FortunaForge</h1>
+        <h3>Ready to take control of your financial future? Let's embark on your trading journey...</h3>        
+        <a href="signup.html" class="btn">Get Started</a>
+    </div>
+    
+</body>
+
+
+<!-- Welcome Page Design -->
+<style>   
+    body { 
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        background-color: rgb(68, 93, 126);
+        display: flex; 
+        justify-content: flex-end; 
+        align-items: center; 
+        height: 100vh;        
+        background-image: url("bg1.jpg"); 
+        background-repeat: no-repeat;
+        background-size:cover; 
+    }
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; 
+        padding-left: 20px;
+        padding-right: 20px; 
+    }
+
+    .welcome-text {
+        text-align: left; 
+        color: #ffffff;
+    }
+    
+    h1 {
+        color: #ffffff;
+        align-items: flex-end;
+        display: flex;
+        flex-direction: column;
+    }
+    h3 {
+        color: #ffffff;
+        align-items: flex-end;
+        display: flex;
+        flex-direction: column;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #34ced9;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+    .btn:hover {
+        background-color: #ed95c8;
+    }
+</style>
+
+
+<!-- <script>
+function transitionToPage(href) {
+    document.querySelector('body').style.opacity = 0;
+    setTimeout(function() {
+        window.location.href = href;
+    }, 500);
+}
+
+document.addEventListener('DOMContentLoaded', function(event) {
+    document.querySelector('body').style.opacity = 10;
+});
+</script> -->
+
+</html>
