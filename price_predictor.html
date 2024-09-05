@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="script" href="script.js">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Price Predictor</title>
+</head>
+
+
+<!-- Structure -->
+<body>
+    <div class="topnav">
+        <a href="home.html" class="button">Home</a>        
+    </div>
+    <header>
+        <h2>Price Predictor</h2>
+    </header> 
+
+    <div class="main">
+        <div class="search-container">
+            <input type="text" placeholder="Search Stock Here" id="tickerInput">
+            <i class="fa fa-search search-icon" onclick="searchAndPredict()"></i>
+        </div>
+        <br>
+
+        <div class="searchButtons">
+            <button type="button" class="armabutton" onclick="showLSTM()">LSTM Prediction Model</button>
+            <button type="button" class="arimabutton" onclick="showInput('ARIMA')">ARIMA Prediction Model</button>
+            <button type="button" class="garchbutton" onclick="showInput('GARCH')">GARCH Prediction Model</button>
+        </div>
+        <br>
+
+        <div id="pqInput_ARIMA" style="display: none;">
+            <button type="button" onclick="showACFPACFGraphARIMA()">ACF and PACF Graph</button>
+            <input type="number" id="pInputARIMA" placeholder="Enter p for ARIMA">
+            <input type="number" id="qInputARIMA" placeholder="Enter q for ARIMA">
+            <button type="button" onclick="predictARIMA()">Go</button>
+        </div>
+
+        <div id="pqInput_GARCH" style="display: none;">
+            <button type="button" onclick="showACFPACFGraphARIMA()">ACF and PACF Graph</button>
+            <input type="number" id="pInputGARCH" placeholder="Enter p for GARCH">
+            <input type="number" id="qInputGARCH" placeholder="Enter q for GARCH">
+            <button type="button" onclick="predictGARCH()">Go</button>
+        </div>
+
+        <div id="acf_pacf_graph"></div>
+        <div id="actual_fitted_graph"></div>
+        <div id="acf_pacf_graph_garch"></div>
+        <div id="actual_fitted_graph_garch"></div>
+        <div id="lstm_graph"></div>
+        
+    </div>
+
+
+    <!-- Designing -->
+    <style>
+    body {
+        font-family: "Georgia, 'Times New Roman', Times, serif";
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("bg1.jpg"); 
+        background-repeat: no-repeat;
+        background-size:cover;
+    }
+
+    header {
+        color: #fff;
+        padding-top: 60px;
+        padding-bottom: 30px;
+        text-align: center;
+        width: 100%;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+
+    .topnav {
+        height: 10px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: bold;
+        padding: 10px;
+    }
+
+    .button {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 10px 20px;
+        background-color: #7a0078; 
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: background color 0.3s ease;
+        font-size: 20px;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+
+    .button:hover {
+        background-color: #9f529f; 
+    }
+
+    .main{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+   .search-container{
+        display: flex;
+        align-items: center;
+        height: 35px;
+        width: 700px;
+        margin-left: 10px;
+        border-radius: 5px;
+        justify-items: center;
+    }
+
+    .search-container input {
+        height: 35px;
+        width: 500px;
+        margin-left: 10px;
+        background-color: rgb(226, 225, 225);
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        flex-grow: 5;
+        color: black;
+    }
+
+    .search-container ::placeholder{
+        color: rgba(82, 82, 82, 0.71);
+    }
+    
+    .search-container .search-icon {
+        color: white;
+        padding: 10px; 
+        cursor: pointer;
+        font-size: 22px;
+    }
+
+    .searchButtons{
+        display: flex;
+        justify-items: center;
+        align-items: center;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        
+    }
+
+    .searchButtons button {
+        padding: 8px 20px;
+        background-color: #13a0d4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+
+    .searchButtons button.armabutton,
+    .searchButtons button.arimabutton,
+    .searchButtons button.garchbutton {
+            width: auto;
+    }
+
+    .searchButtons button:hover {
+        background-color: #154c60;
+    }
+
+    #pqInput_ARIMA button{
+       background-color: rgb(141, 19, 13);
+       color: white;
+    }
+
+    #pqInput_GARCH button{
+       background-color: rgb(13, 141, 39);
+       color: white;
+    }
+
+    </style>
+
+    <!-- Functioning -->
+    <script>
+        function showInput(model) {
+            if (model === 'ARIMA') {
+                document.getElementById('pqInput_ARIMA').style.display = 'block';
+                document.getElementById('pqInput_GARCH').style.display = 'none';
+            } else if (model === 'GARCH') {
+                document.getElementById('pqInput_GARCH').style.display = 'block';
+                document.getElementById('pqInput_ARIMA').style.display = 'none';
+            } else {
+                document.getElementById('pqInput_GARCH').style.display = 'none';
+                document.getElementById('pqInput_ARIMA').style.display = 'none';
+            }
+        }
+
+
+        async function showLSTM() {
+            const ticker = document.getElementById("tickerInput").value;
+            const response = await fetch("http://127.0.0.1:8000/api/lstm", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `ticker=${ticker}`
+            });
+            const data = await response.json();
+            const lstm_graph = document.getElementById("lstm_graph");
+            lstm_graph.innerHTML = `<img src="data:image/png;base64,${data.lstm_graph}" />`;
+            lstm_graph.style.display = "block";
+        }
+
+        async function showACFPACFGraphARIMA() {
+            const ticker = document.getElementById("tickerInput").value;
+            const response = await fetch("http://127.0.0.1:8000/api/arima_acf_pacf_graph", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `ticker=${ticker}`
+            });
+            const data = await response.json();
+            const acf_pacf_graph = document.getElementById("acf_pacf_graph");
+            acf_pacf_graph.innerHTML = `<img src="data:image/png;base64,${data.acf_pacf_graph}" />`;
+            acf_pacf_graph.style.display = "block";
+        }
+    
+        // Function to predict with ARIMA model
+        async function predictARIMA() {
+            const ticker = document.getElementById("tickerInput").value;
+            const p = document.getElementById("pInputARIMA").value; // Corrected ID
+            const q = document.getElementById("qInputARIMA").value; // Corrected ID
+            const response = await fetch("http://127.0.0.1:8000/api/arima_prediction", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `ticker=${ticker}&p=${p}&q=${q}`
+            });
+            const data = await response.json();
+            const actual_fitted_graph = document.getElementById("actual_fitted_graph");
+            actual_fitted_graph.innerHTML = `<img src="data:image/png;base64,${data.actual_fitted_graph}" />`;
+            actual_fitted_graph.style.display = "block";
+        }
+
+    
+        // Function to predict with ARIMA model
+        async function predictGARCH() {
+            const ticker = document.getElementById("tickerInput").value;
+            const p = document.getElementById("pInputGARCH").value;
+            const q = document.getElementById("qInputGARCH").value;
+            const response = await fetch("http://127.0.0.1:8000/api/garch_volatility_prediction", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `ticker=${ticker}&p=${p}&q=${q}`
+            });
+            const data = await response.json();
+            const actual_fitted_graph_garch = document.getElementById("actual_fitted_graph_garch");
+            actual_fitted_graph_garch.innerHTML = `<img src="data:image/png;base64,${data.actual_fitted_graph_garch}" />`;
+            actual_fitted_graph_garch.style.display = "block";
+        }
+    </script>
+</body>
+
+<footer>
+    In ARIMA (Autoregressive Integrated Moving Average) and GARCH (Generalized Autoregressive Conditional Heteroskedasticity) models, "p" and "q" are parameters that represent the number of autoregressive and moving average terms, respectively. In ARIMA, "p" is the number of lagged observations of the dependent variable included in the model and "q" is the number of lagged forecast errors in the prediction equation. Whereas, in GARCH, "p" is the number of lagged squared residuals used to forecast the conditional variance (volatility) of a time series and "q" is the number of lagged conditional variances used in the forecast equation. The ACF (Autocorrelation Function) plot shows the correlation between a series and its lagged values. Peaks in the ACF plot indicate significant autocorrelation at those lags. The PACF (Partial Autocorrelation Function) plot shows the correlation between a series and its lagged values, controlling for the effect of shorter lags. Peaks in the PACF plot indicate the direct effect of a specific lag on the current value of the series, removing the influence of shorter lags.
+
+LSTM (Long Short-Term Memory) is a type of neural network designed for handling sequential data. It's known for its ability to capture trends, seasonality, and long-term dependencies present in stock price movements.
+ </footer>
+
+ <style>
+    footer{
+    background-color: #102165;
+    color: #fff;
+    padding: 30px;
+    text-align: center;
+    font-size: medium;
+    }
+ </style>
+</body>
+</html>
