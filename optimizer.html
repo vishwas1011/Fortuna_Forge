@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="script" href="script.js">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Portfolio Optimizer</title>
+
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <div class="topnav">
+        <a href="home.html" class="button">Home</a>        
+    </div>
+    
+    <div class="main">
+        <header>
+            <h2>PORTFOLIO OPTIMIZER</h2>
+        </header>
+
+        <!-- Investment Amount Box -->
+        <div class="input-container">
+            <h3>Enter Tickers of Stocks (Separated by Commas): </h3>
+            <div class="input-group">
+                <!-- <input type="number" id="investment-amount"  placeholder="Enter Investment Amount Here"> -->
+                <br>
+                <input type="text" id="stock-tickers" placeholder="Enter stock tickers (separated by commas)">
+            </div>
+
+            <button id="optimize-button" onclick="optimize()">Optimize</button>
+        </div>
+
+
+        <div class="info">
+            <p id="optimized-amount"></p>
+            <div id="optimized-chart"></div>
+            <div id="optimized-graph"></div>
+        </div>
+        <!-- <div id="optimized-chart"></div> 
+        <div id="optimized-graph"></div>  -->
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function optimize() {
+            const symbol = document.getElementById("stock-tickers").value;
+    
+            $.ajax({
+                url: 'http://127.0.0.1:8000/api/optimize',
+                method: 'POST',
+                data: { ticker: symbol },
+                success: function(response) {
+                    if (response.detail) {
+                        console.error("Error:", response.detail);
+                    } else {
+                        renderTable(response);
+                        renderGraph(response.optimized);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching data:", error);
+                }
+            });
+        }
+    
+        function renderTable(data) {
+            const tableDiv = document.getElementById("optimized-chart");
+            tableDiv.innerHTML = ''; // Clear existing content
+    
+            const table = document.createElement('table');
+            table.setAttribute('border', '1');
+    
+            const tableHead = document.createElement('thead');
+            const headRow = document.createElement('tr');
+            headRow.innerHTML = '<th>Stocks</th><th>Optimal Weights</th>';
+            tableHead.appendChild(headRow);
+            table.appendChild(tableHead);
+    
+            const tableBody = document.createElement('tbody');
+    
+            for (let i = 0; i < data.stocklist.length; i++) {
+                const key = data.stocklist[i];
+                const value = data.opt_w[i];
+    
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${key}</td><td>${value}</td>`;
+                tableBody.appendChild(row);
+            }
+            table.appendChild(tableBody);
+    
+            tableDiv.appendChild(table);
+        }
+    
+        function renderGraph(graphBase64) {
+        console.log("Rendering graph...");
+        console.log("Graph base64 data:", graphBase64);
+
+        const img = document.createElement('img');
+        img.src = `data:image/png;base64,${graphBase64}`;
+        const graphDiv = document.getElementById('optimized-graph');
+
+        if (!graphDiv) {
+            console.error("Graph div not found!");
+        } else {
+            graphDiv.innerHTML = ''; // Clear existing content
+            graphDiv.appendChild(img);
+            console.log("Graph rendered successfully!");
+        }
+    }
+    </script>
+</body>
+
+<!-- Designing -->
+<style>
+    body {
+        background-image: url("bg1.jpg"); 
+        background-repeat: no-repeat;
+        background-size:cover;
+    }
+
+    .main {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+    
+    .topnav {
+        height: 10px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: bold;
+        padding: 10px;
+    }
+
+    .button {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 5px 10px;
+        background-color: #d8009f; 
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: background color 0.3s ease;
+        font-size: 20px;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+
+    .button:hover {
+        background-color: #ffbded; 
+    }
+
+    header {
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+        width: 100%;
+    }
+        
+    h2 {
+        margin-top: 10px;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .input-container .input-group {
+        text-align: center; 
+        margin-bottom: 15px; 
+        width: 100px;
+    }
+
+    #investment-amount{
+        width: 580px;
+        height: 22px;
+    }
+
+    #stock-tickers{
+        width: 580px;
+        height: 22px;
+    }
+
+    h3{
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+
+    #optimize-button{
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        background-color: #7a0078;
+        border-radius: 7px;
+        font-style: bold;
+        padding: 8px;
+        font-size: 15px;
+    }
+    #optimize-button:hover{
+        background-color: #be5abc;
+    }
+    .input-container {
+        background-color: #fff;
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 600px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        opacity: 0.75;
+    }
+        
+    .input-container h2 {
+        margin-bottom: 10px;
+    }
+    
+    .input-container p {
+        margin-top: 0;
+    }
+
+    .input-group input::placeholder {
+        font-size: 16px;
+        color: #888;
+        
+    }
+
+    .toggle-list {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+    }
+    
+    .toggle-list label {
+        display: inline-block;
+        margin-right: 10px;
+        cursor: pointer;
+        }
+    .toggle-list input[type="radio"] {
+        display: none;
+    }
+    .toggle-list input[type="radio"] + span {
+        padding: 5px 10px;
+        border-radius: 5px;
+        background-color: #ccc;
+        cursor: pointer;
+    }
+    .toggle-list input[type="radio"]:checked + span {
+        background-color: #007bff;
+        color: #fff;
+    }
+    .output-container {
+        background-color: #fff;
+        padding: 20px;
+        margin-top: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: none;
+    }
+    #optimized-chart{
+        background-color: #fff;
+        color: black;
+        margin-left: 800px;
+        margin-right: 10px;
+    }
+    #optimized-graph{
+        background-color: #fff;
+        color: black;
+        margin-left: 800px;
+        margin-right: 10px;
+    }
+</style>
+</html>
