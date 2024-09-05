@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="script" href="script.js">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>trend</title>
+</head>
+
+<!-- Structure -->
+<body>
+    <!-- Top Navigation Bar Structure -->
+    <div class="topnav">
+        <a href="home.html" class="button">Home</a>
+    </div>
+
+    <div class="main">
+        <!-- Stock Input Bar Structure -->
+        <div class="centered-content">
+            <p>Let's track the stock trends here:</p>
+            <div class="searchbar">
+                <input type="text" id="stocksymbol" placeholder="Enter stock symbol...">
+                <i class="fa fa-search search-icon" onclick="trackStock()"></i>
+            </div>
+        </div>
+        <!-- Output Display Structure -->
+        <div class="info">
+            <p id="stockPrice"></p>
+            <div id="stockTable"></div>
+            <div id="stockGraph"></div>
+        </div>
+    </div>
+</body>
+
+<!-- Designing -->
+<style>
+    body{
+        background-image: url("bg1.jpg"); 
+        background-repeat: no-repeat;
+        background-size:cover;
+        font-family: Georgia, 'Times New Roman', Times, serif
+    }
+
+    .main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content:flex-start;
+        min-height: 100vh;
+        margin-top: 100px;
+        font-family: Georgia, 'Times New Roman', Times, serif       
+    }
+
+    .topnav {
+        height: 10px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: bold;
+        padding: 10px;
+    }
+
+    .centered-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .centered-content p{
+        color: white;
+        font-weight: bold;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: large;
+    }
+
+    .searchbar {
+        display: flex;
+        align-items: center;
+    }
+
+    .searchbar input {
+        height: 35px;
+        width: 500px;
+        margin-left: 10px;
+        background-color: white;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        padding-left: 10px;
+        flex-grow: 5;
+    }
+    .searchbar .search-icon {
+        color: white;
+        padding: 10px; 
+        cursor: pointer;
+        font-size: 24px;
+    }
+
+    .searchbar button {
+        height: 35px;
+        padding: 0 10px;
+        border: none;
+        background-color: white;
+        cursor: pointer;
+    }
+    
+    .info {
+        color: white;
+        margin-top: 20px;
+        font-weight: bold;
+        align-items: center;        
+    }
+
+    .button {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 5px 10px;
+        background-color: #d8009f; 
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 8px;
+        transition: background color 0.3s ease;
+        font-size: 20px;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+    .button:hover {
+        background-color: #ffbded; 
+    }
+
+    .info{
+        background-color: #fff;
+        color: black;
+        margin-left: 100px;
+        margin-right: 100px;
+    }
+
+</style>
+
+<!-- Functioning with JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function trackStock() {
+        const symbol = document.getElementById("stocksymbol").value;
+
+        $.ajax({
+            url: 'http://127.0.0.1:8000/api/stock_price?symbol=' + symbol,
+            method: 'GET',
+            success: function(response) {
+                if (response.detail) {
+                    document.getElementById("stockPrice").innerText = response.detail;
+                } else {
+                    document.getElementById("stockPrice").innerText = `Stock Price: ${response.price}`;
+                    renderTable(response);
+                    renderGraph(response.graph);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching data:", error);
+                document.getElementById("stockPrice").innerText = "Failed to fetch data. Please try again later.";
+            }
+        });
+    }
+
+    function renderTable(data) {
+        const tableDiv = document.getElementById("stockTable");
+        tableDiv.innerHTML = ''; // Clear existing table
+
+        const table = document.createElement('table');
+        table.setAttribute('border', '1');
+
+        const tableHead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        headRow.innerHTML = '<th>Parameter</th><th>Value</th>';
+        tableHead.appendChild(headRow);
+        table.appendChild(tableHead);
+
+        const tableBody = document.createElement('tbody');
+        for (const [key, value] of Object.entries(data)) {
+            if (key !== 'graph') {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${key}</td><td>${value}</td>`;
+                tableBody.appendChild(row);
+            }
+        }
+        table.appendChild(tableBody);
+
+        tableDiv.appendChild(table);
+    }
+
+    function renderGraph(graphBase64) {
+        const img = document.createElement('img');
+        img.src = `data:image/png;base64,${graphBase64}`;
+        const graphDiv = document.getElementById('stockGraph');
+        graphDiv.innerHTML = ''; // Clear existing graph
+        graphDiv.appendChild(img);
+    }
+</script>
+
+
+
+</html>
